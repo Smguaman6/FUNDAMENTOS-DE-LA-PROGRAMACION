@@ -1,0 +1,639 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#06162d">
+<title>NATACIÓN – CAMPEONES DE LA PISCINA</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=DM+Sans:wght@400;500;600;700;800&display=swap');
+:root{--navy:#06162d;--deep:#081f3a;--blue:#00a9ff;--cyan:#4ce5e0;--gold:#ffcf61;--white:#f4fbff;--muted:#9bb4ca;--glass:rgba(7,25,48,.82)}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--navy);color:var(--white);font-family:"DM Sans",Arial,sans-serif}
+button,select{font:inherit}button{color:inherit;border:0;cursor:pointer}
+#game{position:fixed;inset:0;background:radial-gradient(ellipse at 50% 35%,#164e75 0,#081c37 58%,#051326 100%)}
+canvas{display:block;width:100%;height:100%}
+.loading{position:absolute;inset:0;z-index:20;display:grid;place-items:center;background:#06162d;transition:opacity .5s}
+.loading.off{opacity:0;pointer-events:none}.loadbox{text-align:center}.spinner{width:44px;height:44px;border:3px solid #ffffff25;border-top-color:var(--cyan);border-radius:50%;margin:20px auto;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}@keyframes rise{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}@keyframes pulse{50%{box-shadow:0 0 35px #00bbff90}}
+.top-brand{position:absolute;top:22px;left:28px;display:flex;align-items:center;gap:12px;z-index:3.5;pointer-events:none}.brand-icon{width:38px;height:38px;border-radius:12px;background:linear-gradient(145deg,#42e6e2,#0095ff);display:grid;place-items:center;color:#062039;font-size:21px;font-weight:900;box-shadow:0 5px 25px #00bfff55}.brand-name{font:800 16px "Barlow Condensed",sans-serif;letter-spacing:1.6px}.brand-name span{display:block;color:var(--cyan);font-size:10px;letter-spacing:2px}
+.screen{position:absolute;inset:0;z-index:3;display:flex;align-items:center;padding:clamp(24px,6vw,90px);pointer-events:none}
+#menu{justify-content:flex-start;align-items:flex-start;overflow-y:auto;padding-top:84px;padding-bottom:22px;background:linear-gradient(90deg,#06162df0 0%,#06162dcc 39%,#06162d30 76%,transparent)}.menu-content{width:min(510px,100%);margin:auto 0;pointer-events:auto;animation:rise .65s ease both}.eyebrow{display:flex;align-items:center;gap:10px;color:var(--cyan);font-size:11px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase}.eyebrow:before{content:"";width:27px;height:2px;background:var(--cyan)}
+h1{font:900 clamp(52px,8vw,95px)/.82 "Barlow Condensed",sans-serif;letter-spacing:-1.6px;margin:17px 0 11px;text-shadow:0 4px 35px #00bfff50}
+h1 em{font-style:normal;color:var(--cyan)}.subtitle{font:700 15px "Barlow Condensed",sans-serif;letter-spacing:4px;color:#d4e5f1;margin:0 0 25px}
+.intro{max-width:390px;color:#a8bed1;font-size:13px;line-height:1.65;margin:0 0 21px}
+.setup{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;max-width:430px}.field label{display:block;color:#a9bfd2;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;margin:0 0 6px}.field.full{grid-column:span 2}
+select,input{width:100%;height:39px;border:1px solid #9ac5e532;border-radius:8px;background:#08213b;color:white;padding:0 10px;outline:none}input:focus,select:focus{border-color:#4ce5e0;box-shadow:0 0 0 2px #4ce5e025}
+.buttons{display:grid;grid-template-columns:1fr 1fr;gap:9px;max-width:430px}.btn{min-height:44px;border-radius:9px;padding:10px 15px;font-size:11px;font-weight:800;letter-spacing:1px;transition:transform .18s,filter .18s,background .18s}.btn:hover{transform:translateY(-2px);filter:brightness(1.13)}.btn-primary{background:linear-gradient(110deg,#12c8d6,#008cff);box-shadow:0 8px 26px #008dff3a;color:#04223d;grid-column:span 2;font-size:14px;min-height:51px;animation:pulse 3s infinite}.btn-secondary{background:#ffffff0d;border:1px solid #b5d7e82a}.btn-quiet{background:transparent;border:1px solid #a9bfd233;color:#c5d5e0}
+.best-panel{margin-top:19px;max-width:430px;display:flex;align-items:center;justify-content:space-between;color:#91aac0;font-size:11px}.best-panel strong{font:700 18px "Barlow Condensed",sans-serif;color:var(--gold)}
+.top-actions{position:absolute;z-index:3.5;right:24px;top:20px;display:flex;gap:8px;pointer-events:auto}.icon-btn{width:38px;height:38px;border-radius:10px;background:#071c34bd;border:1px solid #bad7e42e;color:#d5efff;font-size:15px}.icon-btn:hover{background:#123756}
+#hud{display:none;position:absolute;inset:0;z-index:4;pointer-events:none;padding:20px 24px}.hud-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}.hud-card{background:linear-gradient(135deg,#061a31e8,#092847d9);border:1px solid #a9ddf12b;border-radius:13px;box-shadow:0 12px 40px #00101e55;backdrop-filter:blur(12px);padding:12px 15px}.timer-card{min-width:151px}.label{font-size:9px;font-weight:800;letter-spacing:1.5px;color:#9eb8cc;text-transform:uppercase}.timer{font:800 31px "Barlow Condensed",sans-serif;font-variant-numeric:tabular-nums;letter-spacing:1px}.timer span{font-size:18px;color:#b9d1e3}.hud-controls{display:flex;gap:7px;pointer-events:auto}.hud-controls .btn{min-height:38px;padding:8px 12px;background:#061a31d9;border:1px solid #b4d7e533}
+.leaderboard{position:absolute;right:24px;top:96px;width:min(230px,30vw);pointer-events:none}.board-title{font:800 14px "Barlow Condensed",sans-serif;letter-spacing:1.5px;margin-bottom:8px}.rank-row{display:flex;align-items:center;gap:8px;padding:7px 8px;border-top:1px solid #b1d5e51c;font-size:10px;color:#bad0df}.rank-row.player{color:white;background:#00b5e41b;border-radius:6px}.rank-num{font:800 14px "Barlow Condensed",sans-serif;color:var(--cyan);width:13px}.rank-flag{font-size:14px}.rank-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rank-time{font-variant-numeric:tabular-nums}
+.race-bottom{position:absolute;left:24px;bottom:22px;width:min(390px,calc(100vw - 48px));display:flex;flex-direction:column;gap:9px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat-value{font:800 22px "Barlow Condensed",sans-serif;margin-top:3px;white-space:nowrap}.stat-value small{font-size:10px;color:#a7c3d7}.meter{height:6px;border-radius:5px;background:#ffffff20;overflow:hidden;margin-top:6px}.meter>i{display:block;height:100%;width:100%;border-radius:5px;background:linear-gradient(90deg,#28d8c6,#7effb5);transition:width .15s,background .2s}.progress-wrap{display:flex;align-items:center;gap:10px}.progress-track{height:5px;flex:1;background:#ffffff27;border-radius:4px;overflow:hidden}.progress-fill{height:100%;width:0;background:linear-gradient(90deg,#23d6dc,#11a9ff);border-radius:4px;transition:width .2s}.hint{font-size:10px;color:#d9ebf5}
+.stroke-zone{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);width:clamp(150px,22vw,255px);height:89px;border:1px dashed #d1f6ff70;border-radius:50%;background:radial-gradient(ellipse,#1ddbe124,#0c9bf00b 55%,transparent 75%);display:flex;align-items:center;justify-content:center;text-align:center;pointer-events:auto;cursor:pointer;user-select:none;transition:background .12s,border .12s}.stroke-zone:active{background:#30dbec45;border-color:#94fff3}.stroke-zone strong{display:block;font:800 14px "Barlow Condensed",sans-serif;letter-spacing:1px}.stroke-zone span{display:block;font-size:9px;color:#b4d7e4;margin-top:4px}
+.toast{position:absolute;left:50%;top:21%;transform:translate(-50%,-10px);opacity:0;padding:12px 23px;border:1px solid #bffaff85;border-radius:12px;background:#07213ce8;font:900 28px "Barlow Condensed",sans-serif;letter-spacing:3px;color:white;text-shadow:0 0 20px #37eaff;transition:opacity .2s,transform .2s;white-space:nowrap}.toast.show{opacity:1;transform:translate(-50%,0)}
+.countdown{position:absolute;left:50%;top:43%;transform:translate(-50%,-50%);font:900 clamp(80px,15vw,160px)/1 "Barlow Condensed",sans-serif;color:white;text-shadow:0 0 55px #05c9ff;display:none}
+.overlay{position:absolute;inset:0;z-index:8;display:none;align-items:center;justify-content:center;padding:20px;background:#041329ad;backdrop-filter:blur(8px);pointer-events:auto}.dialog{width:min(560px,100%);max-height:90vh;overflow:auto;background:linear-gradient(145deg,#0b2b49f5,#06172ef7);border:1px solid #98d7f63c;border-radius:20px;padding:27px;box-shadow:0 25px 100px #0009;animation:rise .3s ease}.dialog h2{font:900 34px "Barlow Condensed",sans-serif;margin:0 0 4px;letter-spacing:.5px}.dialog p{color:#b4cad8;font-size:13px;line-height:1.65}.result-table{width:100%;border-collapse:collapse;margin:15px 0 20px;font-size:12px}.result-table th{text-align:left;color:#90adc2;font-size:9px;letter-spacing:1.1px;padding:8px;border-bottom:1px solid #ffffff26}.result-table td{padding:9px 8px;border-bottom:1px solid #ffffff16}.result-table tr:first-child td{color:var(--gold)}.dialog-actions{display:flex;gap:9px;flex-wrap:wrap}.dialog-actions .btn{flex:1;min-width:130px}
+.instructions-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:17px 0}.instruction{background:#ffffff0a;border-radius:10px;padding:12px;font-size:11px;color:#b9cedd;line-height:1.5}.instruction b{color:#fff;display:block;margin-bottom:4px}
+#error{display:none;position:absolute;z-index:30;inset:0;background:#06162d;color:#fff;place-items:center;text-align:center;padding:30px}
+.flag{width:24px;height:15px;border-radius:2px;box-shadow:0 1px 5px #0008;vertical-align:middle}
+@media(max-width:700px){.top-brand{top:12px;left:14px}.top-actions{top:12px;right:12px}.screen{padding:68px 22px 24px;background:linear-gradient(90deg,#06162dea,#06162d90 75%,transparent)}#menu{padding:72px 22px 20px;background:linear-gradient(90deg,#06162df5,#06162de0 66%,#06162d55)}.menu-content{width:min(490px,100%)}h1{font-size:clamp(51px,13vw,76px)}.intro{font-size:12px;margin-bottom:15px}.setup{margin-bottom:12px}.best-panel{margin-top:12px}.leaderboard{top:88px;right:12px;width:152px}.rank-row{padding:6px 4px;gap:4px;font-size:9px}.rank-time{display:none}.hud-controls{position:absolute;right:12px;top:57px}.hud-controls .btn{font-size:9px;padding:7px}.race-bottom{left:12px;bottom:13px;width:calc(100vw - 24px)}.hud-card{padding:9px 10px}.timer-card{min-width:120px}.timer{font-size:25px}.stroke-zone{bottom:91px;height:67px;width:150px}.stats{gap:5px}.stat-value{font-size:18px}.hint{font-size:9px}.toast{top:26%;font-size:23px}.dialog{padding:20px}.instructions-grid{grid-template-columns:1fr}}
+@media(max-height:650px){.screen{padding-top:55px;padding-bottom:12px}#menu{padding-top:70px;padding-bottom:18px}.intro{margin-bottom:12px}.setup{margin-bottom:9px}.best-panel{margin-top:9px}h1{font-size:clamp(48px,10vh,75px)}}
+</style>
+</head>
+<body>
+<main id="game" aria-label="Juego de natación 3D">
+  <div class="loading" id="loading"><div class="loadbox"><div class="brand-icon" style="margin:auto">≈</div><div class="spinner"></div><div class="label">PREPARANDO LA PISCINA</div></div></div>
+  <div class="top-brand"><div class="brand-icon">≈</div><div class="brand-name">NATACIÓN<span>CAMPEONES DE LA PISCINA</span></div></div>
+  <div class="top-actions"><button class="icon-btn" id="musicToggle" title="Activar/desactivar música" aria-label="Música" aria-pressed="true" style="color:var(--cyan)">♫</button><button class="icon-btn" id="sfxToggle" title="Activar/desactivar efectos" aria-label="Efectos">◖</button><button class="icon-btn" id="qualityToggle" title="Cambiar calidad gráfica" aria-label="Calidad">✦</button></div>
+  <section class="screen" id="menu">
+    <div class="menu-content">
+      <div class="eyebrow">Gran competición de natación</div>
+      <h1><em>NATACIÓN</em></h1>
+      <div class="subtitle">CAMPEONES DE LA PISCINA</div>
+      <p class="intro">Personaliza tu nadador, elige una distancia y compite en carreras, contrarreloj o un Mundial por rondas cada vez más difíciles. Cada clic carga tu resistencia y te da impulso.</p>
+      <div class="setup">
+        <div class="field"><label for="playerName">Nombre del nadador</label><input id="playerName" maxlength="20" autocomplete="nickname" placeholder="Tu nombre"></div>
+        <div class="field"><label for="laneSelect">¿A qué carril quieres ir?</label><select id="laneSelect"></select></div>
+        <div class="field full"><label for="difficulty">Dificultad</label><select id="difficulty"><option value="easy">Fácil</option><option value="medium">Medio</option><option value="normal" selected>Normal</option><option value="hard">Difícil</option><option value="complicated">Complicado</option></select></div>
+        <div class="field full"><label for="raceDistance">Distancia de carrera</label><select id="raceDistance"><option value="50" selected>50 m · 1 largo</option><option value="100">100 m · 2 largos</option><option value="200">200 m · 4 largos</option><option value="400">400 m · 8 largos</option><option value="800">800 m · 16 largos</option><option value="1500">1500 m · 30 largos</option></select></div>
+      </div>
+      <div class="buttons">
+        <button class="btn btn-primary" data-mode="quick">▶ &nbsp; JUGAR · CARRERA RÁPIDA</button>
+        <button class="btn btn-secondary" data-mode="training">ENTRENAMIENTO</button>
+        <button class="btn btn-secondary" data-mode="championship">MUNDIAL · CLASIFICACIÓN</button>
+        <button class="btn btn-secondary" data-mode="time">CONTRARRELOJ</button>
+        <button class="btn btn-quiet" id="instructionsBtn">¿CÓMO SE JUEGA?</button>
+      </div>
+      <div class="best-panel"><span id="bestLabel">MEJOR MARCA · 50 M</span><strong id="bestTime">--:--.---</strong></div>
+    </div>
+  </section>
+  <section id="hud">
+    <div class="hud-top">
+      <div class="hud-card timer-card"><div class="label" id="modeLabel">CARRERA RÁPIDA · 50 M</div><div class="timer" id="timer">00:00<span>.000</span></div></div>
+      <div class="hud-controls"><button class="btn" id="cameraBtn">◉ CÁMARA</button><button class="btn" id="pauseBtn">Ⅱ PAUSA</button><button class="btn" id="restartBtn">↻ REINICIAR</button><button class="btn" id="menuBtn">MENÚ</button></div>
+    </div>
+    <div class="leaderboard hud-card"><div class="board-title">CLASIFICACIÓN <span style="color:var(--cyan)">EN VIVO</span></div><div id="leaderboard"></div></div>
+    <div class="race-bottom">
+      <div class="stats">
+        <div class="hud-card"><div class="label">VELOCIDAD</div><div class="stat-value" id="speed">0.0 <small>m/s</small></div></div>
+        <div class="hud-card"><div class="label">RITMO DE CLIC</div><div class="stat-value" id="streak">0.0 <small>clic/s</small></div></div>
+        <div class="hud-card"><div class="label">RESISTENCIA <span id="energyText">0%</span></div><div class="meter"><i id="energyFill"></i></div></div>
+      </div>
+      <div class="hud-card">
+        <div class="progress-wrap"><div class="label">DISTANCIA</div><div class="progress-track"><div class="progress-fill" id="progressFill"></div></div><div class="label" id="distance">0 / 50 m</div></div>
+        <div class="hint" id="positionHint" style="margin-top:8px">Haz clic o pulsa ESPACIO para dar una brazada.</div>
+      </div>
+    </div>
+    <div class="stroke-zone" id="strokeZone"><div><strong>¡DA UNA BRAZADA!</strong><span>CLIC O BARRA ESPACIADORA</span></div></div>
+    <div class="toast" id="toast"></div><div class="countdown" id="countdown"></div>
+  </section>
+  <div class="overlay" id="pauseOverlay"><div class="dialog" style="max-width:390px;text-align:center"><div class="eyebrow" style="justify-content:center">TIEMPO FUERA</div><h2>PAUSA</h2><p>Recupera el aire. La competición espera.</p><div class="dialog-actions"><button class="btn btn-primary" id="resumeBtn">CONTINUAR</button><button class="btn btn-secondary" id="pauseMenuBtn">MENÚ PRINCIPAL</button></div></div></div>
+  <div class="overlay" id="resultsOverlay"><div class="dialog"><div class="eyebrow" id="resultEyebrow">RESULTADOS OFICIALES</div><h2 id="resultTitle">¡GRAN CARRERA!</h2><p id="resultMessage"></p><div id="championshipInfo"></div><table class="result-table"><thead><tr><th>POS.</th><th>NADADOR</th><th>PAÍS</th><th>TIEMPO</th></tr></thead><tbody id="resultsBody"></tbody></table><div class="dialog-actions"><button class="btn btn-primary" id="againBtn">↻ &nbsp; VOLVER A JUGAR</button><button class="btn btn-secondary" id="resultsMenuBtn">MENÚ PRINCIPAL</button></div></div></div>
+  <div class="overlay" id="instructionsOverlay"><div class="dialog"><div class="eyebrow">GUÍA DEL NADADOR</div><h2>DOMINA EL RITMO</h2><div class="instructions-grid"><div class="instruction"><b>① ELIGE TU PRUEBA</b>Desde 50 hasta 1500 m; las pruebas largas incluyen virajes en cada pared.</div><div class="instruction"><b>② CLASIFICACIÓN MUNDIAL</b>Supera la clasificatoria y la semifinal para llegar a la final. Cada ronda aumenta el nivel de los rivales.</div><div class="instruction"><b>③ ELIGE DIFICULTAD</b>Hay cinco niveles: Fácil, Medio, Normal, Difícil y Complicado.</div><div class="instruction"><b>④ CARGA RESISTENCIA</b>Empiezas en cero: cada clic suma resistencia y velocidad. La barra se consume poco a poco durante la prueba.</div></div><p>También puedes usar la barra espaciadora. Los clics en los botones no cuentan como brazadas.</p><div class="dialog-actions"><button class="btn btn-primary" id="closeInstructions">¡ENTENDIDO!</button></div></div></div>
+  <div id="error"><div><h2>No se pudo iniciar el motor 3D</h2><p>Comprueba tu conexión a Internet y abre este archivo con Live Server para cargar Three.js.</p></div></div>
+</main>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+let THREE,OrbitControls;
+
+const $=id=>document.getElementById(id);
+const COLORS=[0xff4b68,0x21c8ff,0xffcf4a,0x8c72ff,0x32e2a1,0xff8b38,0xe957da,0xc8ee50];
+const NAMES=['Luca Moretti','Noah Williams','Mateo Ruiz','Ethan Brooks','Leo Nakamura','Adam Fischer','Hugo Martin','Kai Andersson'];
+const COUNTRIES=['🇮🇹','🇺🇸','🇪🇸','🇬🇧','🇯🇵','🇩🇪','🇫🇷','🇸🇪'];
+const LANE_NAMES=['Carril 1','Carril 2','Carril 3','Carril 4','Carril 5','Carril 6','Carril 7','Carril 8'];
+const POOL_LENGTH=50, TRACK_LENGTH=48, START_X=-24, FINISH_X=24, LANE_Z=[-7,-5,-3,-1,1,3,5,7];
+const laneSelect=$('laneSelect');
+LANE_NAMES.forEach((name,i)=>{const o=document.createElement('option');o.value=i;o.textContent=name;laneSelect.appendChild(o)});
+laneSelect.value='3';
+const playerNameInput=$('playerName');
+playerNameInput.value=localStorage.getItem('aqua-player-name')||'';
+function swimmerName(index){return index===selectedLane?(playerNameInput.value.trim()||'Tú'):NAMES[index]}
+function escapeHtml(value){return String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]))}
+
+let scene,camera,renderer,controls,pool,water,waterPositions,waterGeometry,causticsTexture,swimmers=[],particles=[],podiumGroup;
+let raf=0,lastFrame=0,worldTime=0,gameState='menu',mode='quick',selectedLane=3,difficulty='normal',raceDistance=50,elapsed=0,playerEnergy=0,playerSpeed=0,lastStroke=-10,clickPower=0,clickRate=0,streak=0,boost=0,strokePulse=0,startDive=0,round=1,championshipScores=[],bestTime=Number(localStorage.getItem('aqua-best-50')||0),cameraMode=0,quality='high',pausedFrom='race',countdownLeft=0,toastUntil=0,confetti=[];
+let audioCtx=null,musicOn=true,sfxOn=true,musicTimer=0,musicStep=0;
+const modeNames={quick:'CARRERA RÁPIDA',training:'ENTRENAMIENTO',championship:'MUNDIAL · CLASIFICATORIA',time:'CONTRARRELOJ'};
+const difficultySettings={
+  easy:{label:'FÁCIL',opponentPace:4.2,playerPace:1.05},
+  medium:{label:'MEDIO',opponentPace:5.3,playerPace:.96},
+  normal:{label:'NORMAL',opponentPace:6.4,playerPace:.86},
+  hard:{label:'DIFÍCIL',opponentPace:7.3,playerPace:.78},
+  complicated:{label:'COMPLICADO',opponentPace:8.4,playerPace:.68}
+};
+$('bestTime').textContent=bestTime?formatTime(bestTime):'--:--.---';
+$('raceDistance').addEventListener('change',refreshBestTime);
+playerNameInput.addEventListener('input',()=>localStorage.setItem('aqua-player-name',playerNameInput.value.slice(0,20)));
+
+function formatTime(seconds){if(!Number.isFinite(seconds))return'--:--.---';const whole=Math.floor(seconds),m=Math.floor(whole/60),s=whole%60,ms=Math.floor((seconds-whole)*1000);return`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.<span>${String(ms).padStart(3,'0')}</span>`}
+function formatPlain(seconds){if(!Number.isFinite(seconds))return'—';const whole=Math.floor(seconds),m=Math.floor(whole/60),s=whole%60,ms=Math.floor((seconds-whole)*1000);return`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(ms).padStart(3,'0')}`}
+function refreshBestTime(){const distance=Number($('raceDistance').value);bestTime=Number(localStorage.getItem(`aqua-best-${distance}`)||0);$('bestTime').textContent=bestTime?formatTime(bestTime):'--:--.---';$('bestLabel').textContent=`MEJOR MARCA · ${distance} M`}
+function mat(color,roughness=.45,metalness=.02,extra={}){return new THREE.MeshStandardMaterial({color,roughness,metalness,...extra})}
+function box(parent,w,h,d,x,y,z,material){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);m.position.set(x,y,z);parent.add(m);return m}
+const sphereGeometries=new Map();
+function sphere(parent,r,x,y,z,material,sx=1,sy=1,sz=1){let geometry=sphereGeometries.get(r);if(!geometry){geometry=new THREE.SphereGeometry(r,16,12);sphereGeometries.set(r,geometry)}const m=new THREE.Mesh(geometry,material);m.position.set(x,y,z);m.scale.set(sx,sy,sz);parent.add(m);return m}
+function cylinder(parent,r1,r2,h,x,y,z,material,segments=12){const m=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,segments),material);m.position.set(x,y,z);parent.add(m);return m}
+
+function init(){
+  scene=new THREE.Scene();scene.background=new THREE.Color(0x07192e);scene.fog=new THREE.Fog(0x07192e,62,125);
+  camera=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,.1,220);camera.position.set(-38,37,48);
+  renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,quality==='high'?1.7:1.15));renderer.setSize(innerWidth,innerHeight);
+  renderer.shadowMap.enabled=quality==='high';renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;
+  $('game').insertBefore(renderer.domElement,$('game').firstChild);
+  controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,0,0);controls.enableDamping=true;controls.dampingFactor=.055;controls.minDistance=24;controls.maxDistance=105;controls.maxPolarAngle=Math.PI*.48;
+  scene.add(new THREE.HemisphereLight(0x9bdcff,0x102039,2.1));
+  const key=new THREE.DirectionalLight(0xfff3d9,3.2);key.position.set(-23,37,20);key.castShadow=quality==='high';key.shadow.mapSize.set(2048,2048);key.shadow.camera.left=-38;key.shadow.camera.right=38;key.shadow.camera.top=30;key.shadow.camera.bottom=-30;scene.add(key);
+  for(const [x,z] of [[-13,-21],[13,-21],[-13,21],[13,21]]){const light=new THREE.SpotLight(0x94eaff,160,80,.72,0.5,1.3);light.position.set(x,18,z);light.target.position.set(0,0,z*.45);scene.add(light,light.target)}
+  buildPool();buildCrowd();buildScoreboard();buildBanners();buildSwimmers();podiumGroup=new THREE.Group();scene.add(podiumGroup);
+  window.addEventListener('resize',resize);
+  controls.addEventListener('start',()=>{if(gameState==='menu')cameraMode=0});
+  $('loading').classList.add('off');raf=requestAnimationFrame(animate);
+}
+
+function buildPool(){
+  const deckCanvas=document.createElement('canvas');deckCanvas.width=256;deckCanvas.height=256;
+  const deckCtx=deckCanvas.getContext('2d');deckCtx.fillStyle='#a7c0c9';deckCtx.fillRect(0,0,256,256);
+  for(let i=0;i<3200;i++){const shade=122+(i*37)%85;deckCtx.fillStyle=`rgba(${shade},${shade+12},${shade+18},${((i*13)%18+4)/100})`;deckCtx.fillRect((i*71)%256,(i*113)%256,1+(i%3),1+(i%2))}
+  const deckTexture=new THREE.CanvasTexture(deckCanvas);deckTexture.wrapS=THREE.RepeatWrapping;deckTexture.wrapT=THREE.RepeatWrapping;deckTexture.repeat.set(10,6);deckTexture.colorSpace=THREE.SRGBColorSpace;
+  const deck=new THREE.MeshStandardMaterial({map:deckTexture,roughness:.86}),darkDeck=mat(0x29495c,.68),white=mat(0xe4f6fb,.34),blue=mat(0x0b78a8,.23,.12),steel=mat(0x9db7c2,.24,.75),ropeMats=[0xff4b68,0x20d2cb,0xffcf4a,0x725cff,0x39e69f,0xff8c3d,0xe957da,0xbde845];
+  box(scene,65,.65,36,0,-1.25,0,darkDeck);
+  box(scene,62,.3,32,0,-.78,0,deck);
+  const poolWall=mat(0x0876a6,.3,.16);box(scene,50,.72,18,0,-.45,0,poolWall);
+  const waterline=mat(0x18a9c9,.25,.25,{emissive:0x064262,emissiveIntensity:.3});
+  for(const z of [-9.02,9.02]){box(scene,49.8,.12,.045,0,-.055,z,waterline);for(let x=-24;x<=24;x+=2)box(scene,.055,.12,.052,x,-.055,z,mat(0xd0eef0,.32))}
+  const floorCanvas=document.createElement('canvas');floorCanvas.width=1024;floorCanvas.height=512;
+  const floorCtx=floorCanvas.getContext('2d');const floorGradient=floorCtx.createLinearGradient(0,0,0,512);floorGradient.addColorStop(0,'#075b87');floorGradient.addColorStop(.5,'#0b79a5');floorGradient.addColorStop(1,'#064d78');floorCtx.fillStyle=floorGradient;floorCtx.fillRect(0,0,1024,512);
+  floorCtx.strokeStyle='rgba(151,230,242,.12)';floorCtx.lineWidth=2;
+  for(let x=0;x<=1024;x+=32){floorCtx.beginPath();floorCtx.moveTo(x,0);floorCtx.lineTo(x,512);floorCtx.stroke()}
+  for(let y=0;y<=512;y+=32){floorCtx.beginPath();floorCtx.moveTo(0,y);floorCtx.lineTo(1024,y);floorCtx.stroke()}
+  floorCtx.strokeStyle='rgba(5,35,75,.72)';floorCtx.lineWidth=8;
+  for(let lane=0;lane<8;lane++){const y=32+lane*64;floorCtx.beginPath();floorCtx.moveTo(0,y);floorCtx.lineTo(1024,y);floorCtx.stroke();floorCtx.beginPath();floorCtx.moveTo(80,y-21);floorCtx.lineTo(80,y+21);floorCtx.stroke();floorCtx.beginPath();floorCtx.moveTo(944,y-21);floorCtx.lineTo(944,y+21);floorCtx.stroke()}
+  const floorTexture=new THREE.CanvasTexture(floorCanvas);floorTexture.colorSpace=THREE.SRGBColorSpace;
+  const floor=new THREE.Mesh(new THREE.PlaneGeometry(48,16),new THREE.MeshStandardMaterial({map:floorTexture,roughness:.48,metalness:.04,side:THREE.DoubleSide}));
+  floor.rotation.x=-Math.PI/2;floor.position.y=-.084;scene.add(floor);
+  const gridX=100,gridZ=48;waterGeometry=new THREE.PlaneGeometry(48,16,gridX,gridZ);waterGeometry.rotateX(-Math.PI/2);
+  waterPositions=waterGeometry.attributes.position;
+  const waterMat=new THREE.MeshPhysicalMaterial({color:0x12a6d0,roughness:.11,metalness:.1,transparent:true,opacity:.58,clearcoat:1,clearcoatRoughness:.07,side:THREE.DoubleSide});
+  water=new THREE.Mesh(waterGeometry,waterMat);water.position.y=-.05;water.receiveShadow=true;scene.add(water);
+  causticsTexture=createCausticsTexture();
+  const caustics=new THREE.Mesh(waterGeometry,new THREE.MeshBasicMaterial({map:causticsTexture,color:0xb8fbff,transparent:true,opacity:.2,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
+  caustics.position.y=-.032;scene.add(caustics);
+  box(scene,48,.13,.22,0,-.12,-8.15,mat(0x092e4d));box(scene,48,.13,.22,0,-.12,8.15,mat(0x092e4d));
+  // Pool-floor lane guides and the eight floating lane ropes.
+  const ropeGeometry=new THREE.SphereGeometry(.105,8,6),ropeMaterial=mat(0xffffff,.3,.2);
+  for(let lane=0;lane<8;lane++){
+    const z=LANE_Z[lane],rope=new THREE.InstancedMesh(ropeGeometry,ropeMaterial,68),transform=new THREE.Object3D();
+    for(let i=0;i<68;i++){const t=i/67;transform.position.set(-23.8+t*47.6,.12,z);transform.scale.set(1,.72,1);transform.updateMatrix();rope.setMatrixAt(i,transform.matrix);rope.setColorAt(i,new THREE.Color(ropeMats[(Math.floor(i/6)+lane)%ropeMats.length]))}
+    rope.instanceMatrix.needsUpdate=true;if(rope.instanceColor)rope.instanceColor.needsUpdate=true;scene.add(rope);
+    for(const x of [-23.65,23.65]){box(scene,.16,.44,1.7,x,-.32,z,white);box(scene,.18,.13,1.9,x,-.03,z,mat(0x13d5e4))}
+    for(let mark=-20;mark<=20;mark+=10)box(scene,.07,.015,.12,mark,-.28,z,mat(0xbdeefa));
+    // Blocks sit just outside each end wall.
+    for(const x of [-25.7,25.7]){
+      box(scene,1.3,.55,1.45,x,.05,z,mat(0xf2f9fa,.35));
+      box(scene,1.05,.08,1.18,x,.36,z,mat(lane===selectedLane?0x20dbe4:0x138dbb,.28,.1));
+      box(scene,.65,.1,.76,x,.48,z,mat(COLORS[lane],.35));
+      const num=createTextSprite(String(lane+1),.7,0x062039);num.position.set(x,.54,z);num.scale.set(.55,.55,1);scene.add(num);
+    }
+  }
+  // End walls, timing pads and lane numbers.
+  for(const x of [-24.35,24.35]){
+    box(scene,.34,1.25,17.4,x,-.12,0,white);
+    for(let i=0;i<8;i++){box(scene,.08,.92,1.7,x+(x<0?.2:-.2),-.1,LANE_Z[i],mat(0x19bddd,.25));}
+    for(let z=-7;z<=7;z+=2)box(scene,.06,.02,.08,x+(x<0?.19:-.19),.54,z,mat(0x143951));
+  }
+  // Deck tiles.
+  const grout=mat(0x7798a7,.9);
+  for(let x=-30;x<=30;x+=2)box(scene,.018,.008,33,x,-.615,0,grout);
+  for(let z=-16;z<=16;z+=2)box(scene,61,.008,.018,0,-.615,z,grout);
+  // Start-side flags and overhead lane pennants.
+  const cord=cylinder(scene,.035,.035,0.01,0,0,0,steel);cord.visible=false;
+  for(let i=0;i<8;i++){
+    const z=LANE_Z[i];const postMat=mat(0x314d60,.34,.65);
+    for(const x of [-29,29]){cylinder(scene,.045,.045,5.5,x,2.1,z*1.6,postMat);sphere(scene,.1,x,4.9,z*1.6,mat(0x45d9ee,.25,.2))}
+    const pennant= new THREE.Mesh(new THREE.ConeGeometry(.23,.52,3),mat(i%2?0x14b8da:0xf5fbff,.45));pennant.position.set(-.7,4.35,z);pennant.rotation.z=Math.PI/2;pennant.rotation.y=.4;scene.add(pennant);
+  }
+  for(let x=-20;x<=20;x+=2){const flag=new THREE.Mesh(new THREE.ConeGeometry(.16,.42,3),mat(Math.floor(x/2)%2?0x0dd5d0:0xffffff,.48));flag.position.set(x,3.95,-9);flag.rotation.z=Math.PI/2;scene.add(flag)}
+  // Lane labels along the deck.
+  for(let i=0;i<8;i++){const s=createTextSprite(`${i+1}`,.55,0x082139);s.position.set(-27.9,.05,LANE_Z[i]);s.scale.set(.6,.6,1);scene.add(s)}
+  const poolSign=box(scene,0.03,.04,.04,0,0,0,white);poolSign.visible=false;
+  // Stadium floor trim and decorative rail.
+  box(scene,63,.12,.28,0,-.38,-17.2,mat(0x16b8c5,.26,.35));box(scene,63,.12,.28,0,-.38,17.2,mat(0x16b8c5,.26,.35));
+}
+
+function createTextSprite(text,size=1,color=0xffffff){
+  const canvas=document.createElement('canvas');canvas.width=256;canvas.height=256;const ctx=canvas.getContext('2d');ctx.clearRect(0,0,256,256);ctx.fillStyle='#'+color.toString(16).padStart(6,'0');ctx.font='900 170px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,128,134);
+  const tex=new THREE.CanvasTexture(canvas);tex.colorSpace=THREE.SRGBColorSpace;const sprite=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false}));sprite.scale.set(size,size,1);return sprite;
+}
+function createCausticsTexture(){
+  const canvas=document.createElement('canvas');canvas.width=512;canvas.height=256;
+  const ctx=canvas.getContext('2d');ctx.clearRect(0,0,512,256);
+  for(let i=0;i<58;i++){
+    const x=(i*83)%512,y=(i*47)%256,rx=9+(i*19)%28,ry=4+(i*13)%13;
+    ctx.beginPath();ctx.ellipse(x,y,rx,ry,(i%11)*.19,0,Math.PI*2);
+    ctx.strokeStyle=`rgba(190,255,255,${.18+(i%5)*.045})`;ctx.lineWidth=1+(i%3)*.65;ctx.stroke();
+  }
+  const texture=new THREE.CanvasTexture(canvas);texture.wrapS=THREE.RepeatWrapping;texture.wrapT=THREE.RepeatWrapping;texture.repeat.set(2,2);texture.colorSpace=THREE.SRGBColorSpace;return texture;
+}
+function buildCrowd(){
+  const seatColors=[0x132f49,0x17415b,0x204b67,0x172b44,0x285574];
+  const shirts=[0x29b6db,0xf5f2e7,0xffab3d,0x78dfbd,0xec5573,0x8d79ee,0x46a9ff].map(c=>mat(c,.7));
+  const complexions=[0xf2bd9a,0xd49973,0xf3d1ad,0x885d4e].map(c=>mat(c,.75));
+  const bodySpots=shirts.map(()=>[]),headSpots=complexions.map(()=>[]);
+  const dummy=new THREE.Object3D();
+  for(let tier=0;tier<4;tier++){
+    const z= tier%2===0?-1:1,baseZ=z*(11+tier*2.15),rise=tier*.92;
+    const row=box(scene,61,.64,3.0,0,.4+rise,baseZ,mat(seatColors[tier],.76));row.rotation.x=z*-.08;
+    for(let x=-28;x<=28;x+=1.35){
+      for(let r=0;r<2;r++){
+        const px=x+(Math.random()-.5)*.4,py=.95+rise+r*.8,pz=baseZ+z*(r*.75-0.25);
+        bodySpots[Math.floor(Math.random()*shirts.length)].push({x:px,y:py,z:pz});
+        headSpots[Math.floor(Math.random()*complexions.length)].push({x:px,y:py+.32,z:pz});
+      }
+    }
+  }
+  const bodyGeometry=new THREE.SphereGeometry(1,9,7),headGeometry=new THREE.SphereGeometry(1,9,7);
+  bodySpots.forEach((spots,i)=>{const instances=new THREE.InstancedMesh(bodyGeometry,shirts[i],spots.length);spots.forEach((p,n)=>{dummy.position.set(p.x,p.y,p.z);dummy.scale.set(.17,.263,.155);dummy.updateMatrix();instances.setMatrixAt(n,dummy.matrix)});instances.instanceMatrix.needsUpdate=true;scene.add(instances)});
+  headSpots.forEach((spots,i)=>{const instances=new THREE.InstancedMesh(headGeometry,complexions[i],spots.length);spots.forEach((p,n)=>{dummy.position.set(p.x,p.y,p.z);dummy.scale.set(.153,.162,.153);dummy.updateMatrix();instances.setMatrixAt(n,dummy.matrix)});instances.instanceMatrix.needsUpdate=true;scene.add(instances)});
+  for(let side of [-1,1]){
+    for(let t=0;t<3;t++){
+      const z=side*(11+t*2.15);const ledge=box(scene,62,.17,.34,0,1.2+t*.92,z,mat(0x577486,.4,.35));
+      const fascia=box(scene,61,.45,.12,0,.82+t*.92,z-side*1.34,mat([0x0ba8ce,0x107db7,0x15c7b9][t],.3,.15));
+      if(t===0)for(let x=-29;x<29;x+=3.8){box(scene,.07,.56,.11,x,1.47,z-side*.25,mat(0xa6c5d3,.3,.6))}
+    }
+  }
+  // Roof trusses and stadium floodlights give the space an indoor-arena scale.
+  for(let x=-26;x<=26;x+=13){
+    const beam=box(scene,.22,.22,34,x,12,0,mat(0x395b6c,.38,.62));beam.rotation.x=Math.PI/2;
+    box(scene,.26,7,.26,x,7.8,-18,mat(0x2d4d60,.4,.65));box(scene,.26,7,.26,x,7.8,18,mat(0x2d4d60,.4,.65));
+    for(let z=-14;z<=14;z+=4){const lamp=box(scene,1.3,.18,.65,x,14.4,z,mat(0xdffaff,.19,.15,{emissive:0x9deaff,emissiveIntensity:2}));lamp.rotation.y=.18}
+  }
+}
+function buildScoreboard(){
+  const c=document.createElement('canvas');c.width=1024;c.height=380;const ctx=c.getContext('2d');ctx.fillStyle='#061b32';ctx.fillRect(0,0,1024,380);ctx.strokeStyle='#20d7e8';ctx.lineWidth=8;ctx.strokeRect(8,8,1008,364);ctx.fillStyle='#4ce5e0';ctx.font='800 44px Arial';ctx.fillText('NATACIÓN  ·  50M',44,75);ctx.fillStyle='white';ctx.font='900 104px Arial';ctx.fillText('00:00.000',45,205);ctx.fillStyle='#b9ccdb';ctx.font='bold 34px Arial';ctx.fillText('CAMPEONES DE LA PISCINA  •  EN VIVO',48,290);
+  const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;const screen=new THREE.Mesh(new THREE.PlaneGeometry(21,7.8),new THREE.MeshBasicMaterial({map:tex,side:THREE.DoubleSide}));screen.position.set(0,9.1,-19.5);scene.add(screen);
+  const frame=box(scene,21.6,.3,.35,0,13.1,-19.6,mat(0x0bc4d8,.3,.4));frame.rotation.z=0;
+  for(const x of [-10.3,10.3])box(scene,.22,7.7,.32,x,9.1,-19.6,mat(0x0bc4d8,.3,.4));
+  window.scoreCanvas=c;window.scoreContext=ctx;window.scoreTexture=tex;
+}
+function buildBanners(){
+  for(const [x,z,text,color] of [[-32,-7,'SWIM FAST',0x13c4d2],[32,7,'CHAMPIONS',0x168bda],[-32,7,'AQUA ARENA',0xe8a831],[32,-7,'GO!',0xe75c72]]){
+    const sign=box(scene,7,1.15,.22,x,2,z,mat(0x09243b,.35,.2,{emissive:color,emissiveIntensity:.13}));sign.rotation.y=x<0?.28:-.28;
+    const sprite=createTextSprite(text,.85,0xffffff);sprite.position.set(x,2,z-.14);sprite.scale.set(3.9,.8,1);scene.add(sprite);
+  }
+}
+
+function limbMesh(parent,length,radius,material){
+  const pivot=new THREE.Group();parent.add(pivot);
+  sphere(pivot,radius,length*.5,0,0,material,length/(radius*2),.78,.78);
+  sphere(pivot,radius*.92,length,0,0,material,.84,.9,.84);
+  return pivot;
+}
+function buildSwimmer(index){
+  const root=new THREE.Group();scene.add(root);root.position.set(START_X,0,LANE_Z[index]);
+  const suit=mat(COLORS[index],.3,.05),skin=mat([0xe3aa83,0x8d5f48,0xf2c09b,0xc68666,0xe4b48f,0x9a6b55,0xf2c5a0,0xc58b67][index],.55),cap=mat(COLORS[index],.26,.08),goggle=mat(0x071827,.17,.65,{metalness:.45});
+  const body=new THREE.Group();root.add(body);
+  sphere(body,.49,-.13,.035,0,suit,1.58,.65,.72);
+  sphere(body,.31,-.42,.02,0,suit,1.04,.82,.8);
+  sphere(body,.25,-.68,.005,0,mat(new THREE.Color(COLORS[index]).multiplyScalar(.68),.34,.06),1.02,.68,.78);
+  sphere(body,.17,.28,.035,0,skin,.72,1.12,.84);
+  const head=new THREE.Group();head.position.set(.4,.055,0);body.add(head);
+  sphere(head,.31,.08,.04,0,skin,1.02,.94,.9);
+  sphere(head,.325,.025,.19,0,cap,1,.49,1.02);
+  box(head,.44,.032,.025,-.005,.19,0,cap);
+  const strap=box(head,.33,.022,.035,.08,.105,-.205,mat(new THREE.Color(COLORS[index]).multiplyScalar(.62),.26,.08));strap.rotation.x=.06;
+  const glass=mat(0x06263c,.13,.7,{metalness:.55,emissive:0x034058,emissiveIntensity:.35});
+  const reflection=mat(0x9dfaff,.16,.3,{emissive:0x36dfff,emissiveIntensity:.45});
+  for(const side of [-1,1]){
+    sphere(head,.078,.31,.105,side*.105,glass,1,.73,.75);
+    sphere(head,.022,.34,.15,side*.105,reflection,1,.65,.65);
+    sphere(head,.105,.015,.04,side*.235,skin,.55,.72,.55);
+  }
+  cylinder(head,.018,.018,.21,.31,.105,0,mat(0x06263c,.16,.55),8).rotation.x=Math.PI/2;
+  sphere(head,.07,.37,.035,0,skin,.8,.42,.55);
+  const mouth=box(head,.09,.018,.02,.28,-.105,0,mat(0x773f3b,.7));mouth.rotation.z=-.12;
+  const stripe=box(body,.52,.035,.035,-.15,.31,0,mat(0xf4fbff,.3));stripe.rotation.z=-.12;
+  for(const side of [-1,1]){
+    const seam=box(body,.54,.026,.025,-.18,.02,side*.31,mat(new THREE.Color(COLORS[index]).multiplyScalar(.58),.38,.03));
+    seam.rotation.z=.16;
+  }
+  const arms=[];
+  for(const side of [-1,1]){
+    const shoulder=new THREE.Group();shoulder.position.set(.04,.18,side*.28);body.add(shoulder);
+    sphere(shoulder,.145,0,0,0,suit,1,.9,.95);
+    sphere(shoulder,.115,.08,.025,side*.025,skin,1.05,.95,.95);
+    const arm=limbMesh(shoulder,.43,.09,skin);arm.rotation.z=side===1?-.08:.08;arm.rotation.x=side*.08;
+    const fore=limbMesh(arm,.38,.068,skin);fore.position.set(.41,0,0);fore.rotation.z=side===1?.08:-.08;
+    sphere(fore,.087,.38,0,0,skin,1.2,.72,.78);
+    arms.push({shoulder,arm,fore,side,head});
+  }
+  const legs=[];
+  for(const side of [-1,1]){
+    const hip=new THREE.Group();hip.position.set(-.55,-.035,side*.13);body.add(hip);
+    const thigh=limbMesh(hip,.42,.105,suit);thigh.rotation.z=Math.PI;
+    const shin=limbMesh(thigh,.39,.072,skin);shin.position.x=.4;
+    const foot=sphere(shin,.13,.43,0,0,skin,1.5,.55,.75);legs.push({hip,thigh,shin,foot,side});
+  }
+  const wake= new THREE.Mesh(new THREE.CylinderGeometry(.13,.08,.65,12),new THREE.MeshBasicMaterial({color:0x83f4ff,transparent:true,opacity:.32}));wake.rotation.x=Math.PI/2;wake.position.set(-.88,-.02,0);root.add(wake);
+  const bubbles=new THREE.Group();root.add(bubbles);
+  return {root,body,head,arms,legs,wake,bubbles,index,progress:0,finishTime:null,baseSpeed:2.28,energy:1,phase:Math.random()*Math.PI*2,style:index,strokes:[]};
+}
+function buildSwimmers(){swimmers=Array.from({length:8},(_,i)=>buildSwimmer(i));}
+
+function spawnSplash(x,y,z,intensity=1,color=0x9cf7ff){
+  const count=quality==='high'?10:5;
+  for(let i=0;i<count;i++){
+    const m=new THREE.Mesh(new THREE.SphereGeometry(.045+Math.random()*.06,7,6),new THREE.MeshBasicMaterial({color,transparent:true,opacity:.88}));
+    m.position.set(x+(Math.random()-.5)*.7,y+Math.random()*.18,z+(Math.random()-.5)*.5);
+    const v=new THREE.Vector3((Math.random()-.5)*2.1,.9+Math.random()*2.2,(Math.random()-.5)*1.5);scene.add(m);particles.push({mesh:m,velocity:v,life:.45+Math.random()*.45,max:.9});
+  }
+}
+function spawnConfetti(){
+  for(let i=0;i<160;i++){
+    const m=new THREE.Mesh(new THREE.BoxGeometry(.12,.2,.04),mat([0xffcf61,0x43e4dc,0xf8fbff,0x3c9fff,0xf45c83][i%5],.3,.1,{emissive:[0xffcf61,0x43e4dc,0xf8fbff,0x3c9fff,0xf45c83][i%5],emissiveIntensity:.2}));
+    m.position.set((Math.random()-.5)*32,7+Math.random()*13,(Math.random()-.5)*20);scene.add(m);confetti.push({mesh:m,v:new THREE.Vector3((Math.random()-.5)*1.6,-1.5-Math.random()*2,(Math.random()-.5)*1.6),rot:(Math.random()-.5)*6});
+  }
+}
+function showPodium(ranking){
+  podiumGroup.clear();
+  const heights=[1.45,.98,.74],xs=[0,-2.5,2.5],colors=[0xd9a92e,0xb7c9d4,0xb7794c],labels=['1','2','3'];
+  ranking.slice(0,3).forEach((entry,i)=>{
+    const h=heights[i],x=xs[i],base=-.62,metal=mat(colors[i],.24,.66,{metalness:.7,emissive:colors[i],emissiveIntensity:.07});
+    const step=box(podiumGroup,2.45,h,1.9,x,base+h/2,0,metal);step.castShadow=true;step.receiveShadow=true;
+    const number=createTextSprite(labels[i],.9,0xffffff);number.position.set(x,base+h+.5,.98);number.scale.set(.55,.55,1);podiumGroup.add(number);
+    const medal=sphere(podiumGroup,.19,x,base+h+.18,1.02,mat(colors[i],.18,.7),1,.13,1);medal.rotation.x=Math.PI/2;
+  });
+  podiumGroup.position.set(0,0,13);podiumGroup.visible=true;
+}
+
+function initAudio(){
+  if(!audioCtx){audioCtx=new (window.AudioContext||window.webkitAudioContext)();}
+  if(audioCtx.state==='suspended')audioCtx.resume();
+}
+function tone(freq,duration=.12,type='sine',volume=.07,when=0,isMusic=false){
+  if((!sfxOn&&!isMusic)||!audioCtx)return;
+  const osc=audioCtx.createOscillator(),gain=audioCtx.createGain();osc.type=type;osc.frequency.setValueAtTime(freq,audioCtx.currentTime+when);gain.gain.setValueAtTime(volume,audioCtx.currentTime+when);gain.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+when+duration);osc.connect(gain);gain.connect(audioCtx.destination);osc.start(audioCtx.currentTime+when);osc.stop(audioCtx.currentTime+when+duration);
+}
+function playStart(){initAudio();tone(660,.17,'triangle',.12);tone(880,.3,'triangle',.1,.18)}
+function playStroke(){tone(180+Math.random()*45,.075,'sine',.04)}
+function playFinish(){initAudio();[523,659,784,1046].forEach((f,i)=>tone(f,.38,'triangle',.11,i*.13))}
+function musicTick(){
+  if(!musicOn||!audioCtx)return;const notes=[196,246.94,293.66,369.99,293.66,246.94,220,329.63];const f=notes[musicStep++%notes.length];tone(f,.23,'sine',.022,0,true);tone(f*1.5,.15,'triangle',.008,.08,true);
+}
+function startMusic(){if(!musicOn||musicTimer)return;initAudio();musicTick();musicTimer=setInterval(musicTick,310)}
+function toggleMusic(){musicOn=!musicOn;if(musicOn)startMusic();else{clearInterval(musicTimer);musicTimer=0}$('musicToggle').style.color=musicOn?'var(--cyan)':'#d5efff';$('musicToggle').setAttribute('aria-pressed',String(musicOn));}
+
+function resetSwimmers(){
+  for(const s of swimmers){s.progress=0;s.finishTime=null;s.energy=.78+Math.random()*.2;s.baseSpeed=aiBaseSpeed(s.index);s.root.position.y=0;s.root.rotation.y=0;s.root.visible=true;setSwimmerCoursePosition(s)}
+  podiumGroup.visible=false;elapsed=0;playerEnergy=0;playerSpeed=0;lastStroke=-10;clickPower=0;clickRate=0;streak=0;boost=0;strokePulse=0;startDive=0;particles.forEach(p=>scene.remove(p.mesh));particles=[];confetti.forEach(p=>scene.remove(p.mesh));confetti=[];
+}
+function aiBaseSpeed(i){
+  const difficultyPace=difficultySettings[difficulty]?.opponentPace||difficultySettings.normal.opponentPace;
+  const distancePace=Math.max(.87,1-Math.log2(raceDistance/50)*.025);
+  const laneTalent=[.985,1.055,1.012,.972,1.028,.993,.958,1.018][i];
+  const championshipPace=mode==='championship'?1+(round-1)*.08:1;
+  let base=difficultyPace*distancePace*laneTalent*championshipPace;
+  if(i===1)base*=1.06;
+  if(i===4)base*=.99;
+  if(i===6)base*=.96;
+  if(i===selectedLane)base=0;
+  return base;
+}
+function begin(modeName,preserveChampionship=false){
+  initAudio();startMusic();mode=modeName;selectedLane=Number(laneSelect.value);difficulty=$('difficulty').value;raceDistance=Number($('raceDistance').value);
+  bestTime=Number(localStorage.getItem(`aqua-best-${raceDistance}`)||0);$('bestTime').textContent=bestTime?formatTime(bestTime):'--:--.---';$('bestLabel').textContent=`MEJOR MARCA · ${raceDistance} M`;
+  if(mode==='championship'&&!preserveChampionship){round=1;championshipScores=[]}
+  if(mode==='championship')modeNames.championship=`MUNDIAL · ${round===1?'CLASIFICATORIA':round===2?'SEMIFINAL':'FINAL'}`;
+  resetSwimmers();gameState='countdown';countdownLeft=3;cameraMode=0;updateHud();updateScoreboard();
+  $('modeLabel').textContent=`${modeNames[mode]||modeNames.quick} · ${raceDistance} M · ${difficultySettings[difficulty].label}`;$('menu').style.display='none';$('hud').style.display='block';
+  $('resultsOverlay').style.display='none';$('pauseOverlay').style.display='none';$('countdown').style.display='block';$('countdown').textContent='3';
+  $('positionHint').textContent=mode==='training'?'Entrena y acelera a base de clics.':`${raceDistance} m · haz clic para adelantar`;
+  $('pauseBtn').textContent='Ⅱ PAUSA';showToast('A SUS PUESTOS',1.8);frameCamera(true);
+}
+function startRace(){
+  gameState='race';elapsed=0;playStart();$('countdown').style.display='none';showToast('¡YA!',.8);
+  startDive=.72;swimmers.forEach(s=>{s.root.position.y=.62;s.root.rotation.z=.18;s.progress=.003;setSwimmerCoursePosition(s)});
+}
+function setSwimmerCoursePosition(swimmer){
+  const meters=Math.max(0,swimmer.progress*raceDistance);
+  const lap=meters===0?0:Math.ceil(meters/POOL_LENGTH)-1;
+  const distanceIntoLap=meters-lap*POOL_LENGTH;
+  const direction=lap%2===0?1:-1;
+  const lapProgress=THREE.MathUtils.clamp(distanceIntoLap/POOL_LENGTH,0,1);
+  swimmer.root.position.x=direction===1?START_X+lapProgress*TRACK_LENGTH:FINISH_X-lapProgress*TRACK_LENGTH;
+  swimmer.direction=direction;
+}
+function clickStroke(){
+  if(gameState!=='race'&&gameState!=='training')return;
+  initAudio();const now=elapsed,interval=now-lastStroke;lastStroke=now;strokePulse=1;
+  playerEnergy=Math.min(1,playerEnergy+.08);
+  clickRate=interval>.025&&interval<2?Math.min(12,1/interval):0;
+  clickPower=Math.min(1,clickPower+(interval<.18?.16:interval<.36?.12:interval<.85?.07:.025));
+  if(interval>=.16&&interval<=.84){streak=Math.min(streak+1,20);boost=Math.min(boost+.07,.48);showToast(streak>=4?'¡RITMO PERFECTO!':'¡IMPULSO!',.45)}
+  else if(interval>.84){streak=0;boost=Math.max(0,boost-.04)}
+  const swimmer=swimmers[selectedLane];spawnSplash(swimmer.root.position.x+.48,.05,LANE_Z[selectedLane],1+clickPower,COLORS[selectedLane]);playStroke();
+}
+
+function updateRace(dt){
+  if(gameState==='countdown'){
+    const before=Math.ceil(countdownLeft),prev=countdownLeft;countdownLeft-=dt;
+    const after=Math.ceil(Math.max(0,countdownLeft));
+    if(after!==before&&after>0){$('countdown').textContent=String(after);tone(440,.13,'sine',.07)}
+    if(countdownLeft<=0)startRace();
+    return;
+  }
+  if(gameState!=='race'&&gameState!=='training')return;
+  elapsed+=dt;
+  if(gameState==='race'||gameState==='training')startDive=Math.max(0,startDive-dt);
+  playerEnergy=Math.max(0,playerEnergy-dt*.018);
+  clickPower=Math.max(0,clickPower-dt*.5);
+  clickRate=Math.max(0,clickRate-dt*1.8);
+  const player=swimmers[selectedLane],energyFactor=.82+.18*playerEnergy;
+  const rhythmBoost=Math.min(1,streak/7)*boost;
+  const playerPace=mode==='training'?1:difficultySettings[difficulty].playerPace;
+  playerSpeed=(1.68+clickPower*3.1+Math.min(clickRate,8)*.28+Math.min(streak,8)*.025+rhythmBoost*.3)*energyFactor*playerPace;
+  if(mode==='training'||!player.finishTime){
+    player.progress=Math.min(1,player.progress+playerSpeed*dt/raceDistance);
+    if(player.progress>=1){player.finishTime=elapsed;if(mode==='training'){player.progress=0;player.finishTime=null;setSwimmerCoursePosition(player)}else if(mode==='time'){endRace()}else checkRaceEnd()}
+  }
+  for(const s of swimmers){
+    if(s.index===selectedLane||s.finishTime)continue;
+    const t=elapsed,phase=s.phase;
+    let behavior=1;
+    if(s.index===1)behavior=s.progress<.18?1.1:s.progress<.5?1.015:.98;
+    if(s.index===4)behavior=1+Math.sin(t*.27+phase)*.025;
+    if(s.index===6)behavior=s.progress>.82?1.15:s.progress>.58?1.035:.93;
+    const fatigue=Math.max(.82,1-s.progress*Math.min(.18,.04+raceDistance/1500*.14));
+    const wave=1+Math.sin(t*.9+phase)*.025+Math.sin(t*2.1+phase*.6)*.012;
+    const speed=s.baseSpeed*behavior*fatigue*wave;
+    s.energy=Math.max(.6,s.energy-dt*(raceDistance===50?.003:.006));
+    s.progress=Math.min(1,s.progress+speed*dt/raceDistance);
+    if(s.progress>=1){s.finishTime=elapsed}
+  }
+  for(const s of swimmers)setSwimmerCoursePosition(s);
+  if(mode!=='training'&&mode!=='time'&&swimmers.every(s=>s.finishTime!==null))endRace();
+  if(mode==='time'&&player.finishTime)endRace();
+  updateHud();updateScoreboard();
+}
+function checkRaceEnd(){if(swimmers.every(s=>s.finishTime!==null))endRace()}
+function finishRanking(){return swimmers.map(s=>({swimmer:s,time:s.finishTime??elapsed+(1-s.progress)*raceDistance/Math.max(.1,s.baseSpeed)})).sort((a,b)=>a.time-b.time)}
+function endRace(){
+  if(gameState==='results')return;
+  gameState='results';if(mode==='training')return;
+  const ranking=finishRanking(),playerPlace=ranking.findIndex(x=>x.swimmer.index===selectedLane)+1,player=swimmers[selectedLane],time=player.finishTime??elapsed;
+  if(mode==='time'&&player.finishTime&&(!bestTime||player.finishTime<bestTime)){bestTime=player.finishTime;localStorage.setItem(`aqua-best-${raceDistance}`,String(bestTime));$('bestTime').textContent=formatTime(bestTime);$('resultMessage').innerHTML=`¡Nuevo récord personal! Has nadado ${raceDistance} metros en <strong style="color:var(--gold)">${formatPlain(time)}</strong>.`}
+  else $('resultMessage').textContent=mode==='championship'?`Ronda ${round} · ${raceDistance} m · posición ${playerPlace} de 8.`:`Completaste los ${raceDistance} m en la posición ${playerPlace} de 8. ${playerPlace===1?'¡Eres el campeón de la piscina!':'Los rivales no regalaron la victoria. ¿Otra carrera?'}`;
+  if(mode==='championship'){
+    championshipScores.push({round,ranking});
+    const qual=ranking.slice(0,round===1?4:round===2?2:1).some(x=>x.swimmer.index===selectedLane);
+    if(round<3){
+      $('championshipInfo').innerHTML=`<div style="background:#17d2d01b;border:1px solid #25dad65c;border-radius:9px;padding:11px;margin:10px 0;font-size:12px">${qual?'<strong style="color:#4ce5e0">¡CLASIFICADO!</strong>':'<strong style="color:#ffbd66">RONDA COMPLETADA</strong>'} · ${round===1?'Semifinal':'Final'} en el siguiente paso</div>`;
+      $('againBtn').textContent=qual?'SIGUIENTE RONDA':'VOLVER A JUGAR';
+    }else{
+      $('championshipInfo').innerHTML='<div style="color:#ffcf61;font-weight:800;margin:8px 0">🏆 CAMPEONATO FINALIZADO</div>';
+      $('againBtn').textContent='NUEVO CAMPEONATO';
+    }
+  }else{$('championshipInfo').innerHTML='';$('againBtn').textContent='↻  VOLVER A JUGAR'}
+  $('resultTitle').textContent=playerPlace===1?'¡CAMPEÓN DE LA PISCINA!':mode==='training'?'BUEN ENTRENAMIENTO':'RESULTADOS OFICIALES';
+  $('resultEyebrow').textContent=mode==='championship'?`MUNDIAL · ${round===1?'CLASIFICATORIA':round===2?'SEMIFINAL':'FINAL'}`:'RESULTADOS OFICIALES';
+  const body=$('resultsBody');body.innerHTML='';
+  ranking.forEach((entry,i)=>{const tr=document.createElement('tr');const t=entry.time,delta=i===0?'—':`+${(t-ranking[0].time).toFixed(3)}s`,name=escapeHtml(swimmerName(entry.swimmer.index));tr.innerHTML=`<td>${['🥇','🥈','🥉'][i]||String(i+1)}</td><td>${entry.swimmer.index===selectedLane?'<strong>TÚ · </strong>':''}${name}</td><td>${COUNTRIES[entry.swimmer.index]}</td><td>${formatPlain(t)}${i>0?` <span style="color:#94aec1;font-size:10px">${delta}</span>`:''}</td>`;body.appendChild(tr)});
+  $('resultsOverlay').style.display='flex';$('pauseOverlay').style.display='none';showPodium(ranking);spawnConfetti();playFinish();cameraMode=3;showToast('¡META!',1.5);
+}
+function nextChampionship(){
+  if(mode!=='championship')return;
+  const qual=championshipScores[championshipScores.length-1].ranking.slice(0,round===1?4:round===2?2:1).some(x=>x.swimmer.index===selectedLane);
+  if(round>=3||!qual){round=1;championshipScores=[]}
+  else round++;
+  mode='championship';modeNames.championship=`MUNDIAL · ${round===1?'CLASIFICATORIA':round===2?'SEMIFINAL':'FINAL'}`;
+  begin('championship',true);$('modeLabel').textContent=`${modeNames.championship} · ${raceDistance} M`;
+}
+function updateHud(){
+  const player=swimmers[selectedLane];$('timer').innerHTML=formatTime(player.finishTime??elapsed);const s=player;
+  $('speed').innerHTML=`${playerSpeed.toFixed(1)} <small>m/s</small>`;
+  $('streak').innerHTML=`${clickRate.toFixed(1)} <small>c/s · ×${streak}</small>`;
+  const energy=Math.round(playerEnergy*100);$('energyText').textContent=`${energy}%`;$('energyFill').style.width=energy+'%';$('energyFill').style.background=energy<25?'linear-gradient(90deg,#ff5366,#ff9a54)':'linear-gradient(90deg,#28d8c6,#7effb5)';
+  const pct=Math.min(100,s.progress*100);$('progressFill').style.width=pct+'%';$('distance').textContent=`${Math.min(raceDistance,Math.round(s.progress*raceDistance))} / ${raceDistance} m`;
+  const rank=[...swimmers].sort((a,b)=>b.progress-a.progress).findIndex(a=>a.index===selectedLane)+1;
+  const totalLaps=Math.ceil(raceDistance/POOL_LENGTH),currentLap=Math.min(totalLaps,Math.floor(s.progress*raceDistance/POOL_LENGTH)+1);
+  $('positionHint').textContent=mode==='training'?`ENTRENAMIENTO · acelera con clics`:`LARGO ${currentLap}/${totalLaps} · POSICIÓN ${rank}/8 · ${clickPower>.35?'IMPULSO ACTIVO':'Haz clic para avanzar'}`;
+  const sorted=[...swimmers].sort((a,b)=>b.progress-a.progress);
+  $('leaderboard').innerHTML=sorted.map((sw,i)=>{const gap=i===0?'LÍDER':`+${((sorted[0].progress-sw.progress)*raceDistance).toFixed(1)} m`;return`<div class="rank-row ${sw.index===selectedLane?'player':''}"><span class="rank-num">${i+1}</span><span class="rank-flag">${COUNTRIES[sw.index]}</span><span class="rank-name">${escapeHtml(swimmerName(sw.index))}</span><span class="rank-time">${gap}</span></div>`}).join('');
+}
+function updateScoreboard(){
+  const ctx=window.scoreContext;if(!ctx)return;
+  ctx.fillStyle='#061b32';ctx.fillRect(0,0,1024,380);ctx.strokeStyle='#20d7e8';ctx.lineWidth=8;ctx.strokeRect(8,8,1008,364);
+  ctx.fillStyle='#4ce5e0';ctx.font='800 40px Arial';ctx.fillText(`NATACIÓN  ·  ${raceDistance}M`,42,68);
+  ctx.fillStyle='white';ctx.font='900 110px Arial';ctx.fillText(formatPlain(elapsed),42,202);
+  const ranking=[...swimmers].sort((a,b)=>b.progress-a.progress).slice(0,3);
+  ctx.fillStyle='#b9ccdb';ctx.font='bold 31px Arial';ctx.fillText(ranking.map((s,i)=>`${i+1}. ${s.index===selectedLane?swimmerName(s.index):NAMES[s.index].split(' ')[0]}  ${(s.progress*raceDistance).toFixed(0)}M`).join('     '),42,286);window.scoreTexture.needsUpdate=true;
+}
+function showToast(text,duration=.7){$('toast').textContent=text;$('toast').classList.add('show');toastUntil=performance.now()/1000+duration}
+
+function animate(now){
+  raf=requestAnimationFrame(animate);const dt=Math.min(.05,(now-lastFrame)/1000||0);lastFrame=now;worldTime+=dt;
+  if(gameState!=='paused')updateRace(dt);
+  updateWater(worldTime);updateSwimmerAnimations(worldTime,dt);updateParticles(dt);updateConfetti(dt);
+  if(performance.now()/1000>toastUntil)$('toast').classList.remove('show');
+  if(gameState==='race'||gameState==='countdown'||gameState==='training'||gameState==='results')followCamera(dt);
+  if(gameState==='menu')controls.update();
+  renderer.render(scene,camera);
+}
+function updateWater(t){
+  const a=waterPositions.array;
+  for(let i=0;i<a.length;i+=3){const x=a[i],z=a[i+2];a[i+1]=Math.sin(x*.46+t*1.9)*.038+Math.sin(z*.75-t*1.35)*.028+Math.sin((x+z)*.34+t)*.025}
+  waterPositions.needsUpdate=true;waterGeometry.computeVertexNormals();
+  if(causticsTexture){causticsTexture.offset.x=(t*.012)%1;causticsTexture.offset.y=(t*.008)%1}
+  for(const s of swimmers){s.wake.material.opacity=.19+Math.sin(t*5+s.index)*.09;s.wake.scale.setScalar(.85+Math.sin(t*4+s.index)*.12)}
+}
+function updateSwimmerAnimations(t,dt){
+  const racing=gameState==='race'||gameState==='training';
+  for(const s of swimmers){
+    s.root.scale.setScalar(s.index===selectedLane?1.28:1.2);
+    const speed=s.index===selectedLane?playerSpeed:(s.finishTime?0:s.baseSpeed);
+    const frequency=racing?.7+speed*.66:.8,phase=t*frequency*2.5+s.phase;
+    s.body.rotation.z=Math.sin(phase)*.055;
+    s.body.rotation.x=Math.sin(phase*.5)*.04;
+    s.body.position.y=-.07+Math.sin(phase*2)*.035;
+    s.arms.forEach((arm,j)=>{
+      const side=arm.side,offset=j*Math.PI;
+      const armPhase=phase+offset;
+      arm.shoulder.rotation.z=.15+(Math.sin(armPhase)+1)*1.48;
+      arm.shoulder.rotation.x=side*(.14+Math.cos(armPhase)*.18);
+      arm.arm.rotation.z=(side===1?-.7:.7)+Math.sin(armPhase)*.62;
+      arm.fore.rotation.z=(side===1?.4:-.4)+Math.sin(armPhase+1)*.62;
+    });
+    s.legs.forEach((leg,j)=>{leg.hip.rotation.z=Math.sin(phase*2+j*Math.PI)*.34;leg.hip.rotation.x=leg.side*.08});
+    s.head.rotation.z=Math.sin(phase*.5)*.11;
+    const targetYaw=s.direction===-1?Math.PI:0;
+    const yawDelta=Math.atan2(Math.sin(targetYaw-s.root.rotation.y),Math.cos(targetYaw-s.root.rotation.y));
+    s.root.rotation.y+=yawDelta*Math.min(1,dt*4.5);
+    const diveLift=startDive>0?.62*(startDive/.72):0;
+    s.root.position.y=diveLift+(s.index===selectedLane&&strokePulse>0?.05:0)+Math.sin(t*8+s.index)*.018;
+    if(startDive>0)s.root.rotation.z=.18*(startDive/.72);
+    if(s.index===selectedLane)strokePulse=Math.max(0,strokePulse-dt*3.2);
+    if(racing&&Math.random()<dt*(s.index===selectedLane?4:1.5))spawnSplash(s.root.position.x-.15,.035,LANE_Z[s.index],.55);
+  }
+}
+function updateParticles(dt){
+  for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.life-=dt;p.mesh.position.addScaledVector(p.velocity,dt);p.velocity.y-=4.2*dt;p.mesh.material.opacity=Math.max(0,p.life/p.max);p.mesh.scale.multiplyScalar(1-dt*.45);if(p.life<=0){scene.remove(p.mesh);p.mesh.geometry.dispose();p.mesh.material.dispose();particles.splice(i,1)}}
+}
+function updateConfetti(dt){
+  for(let i=confetti.length-1;i>=0;i--){const p=confetti[i];p.mesh.position.addScaledVector(p.v,dt);p.mesh.rotation.x+=dt*p.rot;p.mesh.rotation.z+=dt*p.rot*.8;if(p.mesh.position.y<-.6){scene.remove(p.mesh);p.mesh.geometry.dispose();p.mesh.material.dispose();confetti.splice(i,1)}}
+}
+function followCamera(dt){
+  if(cameraMode===0){
+    const player=swimmers[selectedLane],target=new THREE.Vector3(player.root.position.x,0,LANE_Z[selectedLane]);
+    controls.target.lerp(target,.06);const desired=new THREE.Vector3(player.root.position.x-player.direction*5.5,4.6,LANE_Z[selectedLane]+7);camera.position.lerp(desired,.045);controls.update();
+  }else if(cameraMode===1){
+    const target=new THREE.Vector3(0,0,0);controls.target.lerp(target,.04);camera.position.lerp(new THREE.Vector3(0,30,45),.035);controls.update();
+  }else if(cameraMode===2){
+    const p=swimmers[selectedLane].root.position,desired=new THREE.Vector3(p.x-8,5,LANE_Z[selectedLane]+8);camera.position.lerp(desired,.035);controls.target.lerp(new THREE.Vector3(p.x+2,0,LANE_Z[selectedLane]),.05);controls.update();
+  }else if(cameraMode===3){
+    controls.target.lerp(new THREE.Vector3(0,.4,13),.035);camera.position.lerp(new THREE.Vector3(31,21,47),.025);controls.update();
+  }
+}
+function frameCamera(reset=false){
+  if(reset){camera.position.set(-37,31,43);controls.target.set(0,0,0);controls.update()}
+}
+function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,quality==='high'?1.7:1.15))}
+
+function pauseGame(){
+  if(gameState!=='race'&&gameState!=='countdown'&&gameState!=='training')return;
+  pausedFrom=gameState;gameState='paused';$('pauseOverlay').style.display='flex';$('pauseBtn').textContent='▶ REANUDAR';
+}
+function resumeGame(){if(gameState!=='paused')return;gameState=pausedFrom;$('pauseOverlay').style.display='none';$('pauseBtn').textContent='Ⅱ PAUSA'}
+function goMenu(){
+  gameState='menu';$('menu').style.display='flex';$('hud').style.display='none';$('pauseOverlay').style.display='none';$('resultsOverlay').style.display='none';$('countdown').style.display='none';$('championshipInfo').innerHTML='';confetti.forEach(p=>scene.remove(p.mesh));confetti=[];podiumGroup.visible=false;frameCamera(true);
+}
+
+$('game').addEventListener('pointerdown',e=>{if(e.target.closest('button,select,.overlay,.menu-content,.top-actions,.hud-controls'))return;if($('menu').style.display!=='none'&&gameState==='menu')return;if(gameState==='race'||gameState==='training')clickStroke()});
+$('strokeZone').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();clickStroke()});
+document.addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();clickStroke()}if(e.code==='Escape'){if(gameState==='paused')resumeGame();else if(gameState==='race'||gameState==='training'||gameState==='countdown')pauseGame()}});
+document.querySelectorAll('[data-mode]').forEach(btn=>btn.addEventListener('click',()=>begin(btn.dataset.mode)));
+$('pauseBtn').addEventListener('click',()=>gameState==='paused'?resumeGame():pauseGame());
+$('resumeBtn').addEventListener('click',resumeGame);$('pauseMenuBtn').addEventListener('click',goMenu);$('pauseMenuBtn').addEventListener('click',goMenu);
+$('restartBtn').addEventListener('click',()=>begin(mode,mode==='championship'));
+$('menuBtn').addEventListener('click',goMenu);$('resultsMenuBtn').addEventListener('click',goMenu);
+$('againBtn').addEventListener('click',()=>mode==='championship'?nextChampionship():begin(mode));
+$('cameraBtn').addEventListener('click',()=>{cameraMode=(cameraMode+1)%3;showToast(['SEGUIMIENTO','VISTA LATERAL','VISTA CERCANA'][cameraMode],.8)});
+$('instructionsBtn').addEventListener('click',()=>$('instructionsOverlay').style.display='flex');
+$('closeInstructions').addEventListener('click',()=>$('instructionsOverlay').style.display='none');
+$('musicToggle').addEventListener('click',toggleMusic);
+$('sfxToggle').addEventListener('click',()=>{sfxOn=!sfxOn;$('sfxToggle').style.color=sfxOn?'var(--cyan)':'#d5efff';if(sfxOn){initAudio();tone(600,.08)}});
+$('qualityToggle').addEventListener('click',()=>{quality=quality==='high'?'balanced':'high';renderer.shadowMap.enabled=quality==='high';renderer.setPixelRatio(Math.min(devicePixelRatio,quality==='high'?1.7:1.15));$('qualityToggle').style.color=quality==='high'?'var(--cyan)':'#d5efff';showToast(quality==='high'?'GRÁFICOS: ALTO':'GRÁFICOS: EQUILIBRADO',.9)});
+window.addEventListener('contextmenu',e=>e.preventDefault());
+window.addEventListener('beforeunload',()=>{cancelAnimationFrame(raf);clearInterval(musicTimer);if(audioCtx)audioCtx.close()});
+
+async function boot(){
+  try{
+    const [threeModule,controlsModule]=await Promise.all([import('three'),import('three/addons/controls/OrbitControls.js')]);
+    THREE=threeModule;OrbitControls=controlsModule.OrbitControls;init();
+  }catch(error){console.error(error);$('loading').style.display='none';$('error').style.display='grid'}
+}
+boot();
+</script>
+</body>
+</html>
